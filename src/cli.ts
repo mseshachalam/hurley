@@ -17,10 +17,10 @@ import { ChaincodeInteractor } from './generators/chaincodeinteractor';
 
 export class CLI {
     static async createNetwork(organizations?: string, users?: string, channels?: string,
-        path?: string, inside?: boolean) {
+        path?: string, inside?: boolean, pureGoResolver?: boolean) {
         const cli = new NetworkCLI();
         await cli.init(Number.parseInt(organizations), Number.parseInt(users),
-            Number.parseInt(channels), path, inside);
+            Number.parseInt(channels), path, inside, pureGoResolver);
         return cli;
     }
     static async cleanNetwork(noRmi: boolean) {
@@ -58,9 +58,9 @@ export class NetworkCLI {
         this.analytics = new Analytics();
     }
 
-    public async init(organizations?: number, users?: number, channels?: number, path?: string, inside?: boolean) {
+    public async init(organizations?: number, users?: number, channels?: number, path?: string, inside?: boolean, pureGoResolver?: boolean) {
         this.analytics.init();
-        this.initNetwork(organizations, users, channels, path, inside);
+        this.initNetwork(organizations, users, channels, path, inside, pureGoResolver);
     }
 
     async initNetwork(
@@ -68,7 +68,8 @@ export class NetworkCLI {
         users?: number,
         channels?: number,
         path?: string,
-        insideDocker?: boolean
+        insideDocker?: boolean,
+        useGoResolver?: boolean,
     ) {
         const homedir = require('os').homedir();
         path = path ? resolve(homedir, path) : join(homedir, this.networkRootPath);
@@ -143,7 +144,7 @@ export class NetworkCLI {
         l(`Ran cryptoconfigsh`);
 
         l(`Building compose`);
-        await dockerComposer.build();
+        await dockerComposer.build(useGoResolver);
         l(`Builded compose`);
         l(`Saving compose`);
         await dockerComposer.save();

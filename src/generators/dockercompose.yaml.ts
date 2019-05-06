@@ -16,7 +16,7 @@ export class DockerComposeYamlGenerator extends BaseGenerator {
     constructor(filename: string, path: string, private options: DockerComposeYamlOptions) {
         super(filename, path);
     }
-    async build() {
+    async build(useGoResolver: boolean) {
         let certs = await Promise.all(this.options.orgs.map(org => this.discoverCert(org)));
         this.contents = `version: '2'
 
@@ -29,7 +29,7 @@ services:
         container_name: orderer.hurley.lab
         image: hyperledger/fabric-orderer:${this.options.envVars.FABRIC_VERSION}
         environment:
-            - GODEBUG=netdns=go
+            ${useGoResolver ? `- GODEBUG=netdns=go`: ``}
             - ORDERER_GENERAL_LOGLEVEL=debug
             - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
             - ORDERER_GENERAL_GENESISMETHOD=file
@@ -53,7 +53,7 @@ ${this.options.orgs.map((org, i) => `
     ca.${org}.hurley.lab:
         image: hyperledger/fabric-ca:${this.options.envVars.FABRIC_VERSION}
         environment:
-            - GODEBUG=netdns=go
+            ${useGoResolver ? `- GODEBUG=netdns=go`: ``}
             - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
             - FABRIC_CA_SERVER_CA_NAME=ca.${org}.hurley.lab
             - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.${org}.hurley.lab-cert.pem
@@ -72,7 +72,7 @@ ${this.options.orgs.map((org, i) => `
         container_name: peer0.${org}.hurley.lab
         image: hyperledger/fabric-peer:${this.options.envVars.FABRIC_VERSION}
         environment:
-            - GODEBUG=netdns=go
+            ${useGoResolver ? `- GODEBUG=netdns=go`: ``}
             - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
             - CORE_PEER_ID=peer0.${org}.hurley.lab
             - CORE_PEER_ADDRESS=peer0.${org}.hurley.lab:7051
